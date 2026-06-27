@@ -1,0 +1,24 @@
+name: Render Keepalive
+
+# Run every 12 minutes
+on:
+  schedule:
+    - cron: '*/12 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send keep-alive request
+        run: |
+          URL="https://hermes-render-mqqajdiv.onrender.com/api/status"
+          echo "Pinging $URL..."
+          # Use curl with retry and timeout
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_content}" --max-time 10 --retry 3 --retry-delay 2 --retry-max-delay 10 "$URL" || echo "000")
+          echo "HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "Error: Unexpected HTTP status $HTTP_CODE"
+            exit 1
+          fi
+          echo "Success: Received HTTP 200"
