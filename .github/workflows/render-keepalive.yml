@@ -10,12 +10,15 @@ jobs:
   keepalive:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up variables
+        run: |
+          echo "SERVICE_URL=https://hermes-render-mqqajdiv.onrender.com/api/status" >> $GITHUB_ENV
       - name: Send keep-alive request
         run: |
-          URL="https://hermes-render-mqqajdiv.onrender.com/api/status"
+          URL="$SERVICE_URL"
           echo "Pinging $URL..."
-          # Use curl with retry and timeout
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_content}" --max-time 10 --retry 3 --retry-delay 2 --retry-max-delay 10 "$URL" || echo "000")
+          # Use curl with retry, timeout, and follow redirects
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 --retry 3 --retry-delay 2 --retry-max-delay 10 --follow-redirect "$URL" || echo "000")
           echo "HTTP status: $HTTP_CODE"
           if [ "$HTTP_CODE" -ne 200 ]; then
             echo "Error: Unexpected HTTP status $HTTP_CODE"
